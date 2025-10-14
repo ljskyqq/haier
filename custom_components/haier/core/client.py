@@ -273,7 +273,11 @@ class HaierClient:
                 _LOGGER.exception("Connection disconnected. Waiting to retry.")
                 await asyncio.sleep(30)
             finally:
-                cancel_control_listen()
+                try:
+                    cancel_control_listen()
+                except:
+                    _LOGGER.exception('cancel control listen failed')
+
                 heartbeat_signal.set()
                 if process_id == self._hass.data['current_listen_devices_process_id']:
                     fire_event(self._hass, EVENT_GATEWAY_STATUS_CHANGED, {
