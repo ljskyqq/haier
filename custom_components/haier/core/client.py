@@ -8,6 +8,7 @@ import threading
 import time
 import uuid
 import zlib
+from functools import wraps
 from typing import List
 from urllib.parse import urlparse
 
@@ -34,6 +35,43 @@ GET_DIGITAL_MODEL_API = 'https://uws.haier.net/shadow/v1/devdigitalmodels'
 
 def random_str(length: int = 32) -> str:
     return ''.join(random.choice('abcdef1234567890') for _ in range(length))
+
+def retry_on_exception(exceptions, max_tries=3):
+    """
+    重试装饰器
+    :param exceptions: 需要捕获并重试的异常（元组）
+    :param max_tries: 最大尝试次数
+    """
+
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            last_exception = None
+            attempt = 0
+
+            while True:
+                try:
+                    return await func(*args, **kwargs)
+                except exceptions as err:
+                    if attempt < max_tries:
+                        _LOGGER.warning(
+                            "捕获到异常 %s。进行第 %s 次重试...",
+                            type(err).__name__, attempt + 1
+                        )
+
+                    else:
+                        last_exception = err
+                        break
+                finally:
+                    attempt += 1
+
+            _LOGGER.error("达到最大重试次数 (%s): %s", max_tries, last_exception)
+
+            raise last_exception
+
+        return wrapper
+
+    return decorator
 
 
 class TokenInfo:
@@ -72,6 +110,7 @@ class HaierClient:
     def hass(self):
         return self._hass
 
+    @retry_on_exception(exceptions=(aiohttp.ClientError, asyncio.TimeoutError))
     async def refresh_token(self, refresh_token: str) -> TokenInfo:
         """
         刷新token
@@ -93,6 +132,7 @@ class HaierClient:
                 token_info['expiresIn']
             )
 
+    @retry_on_exception(exceptions=(aiohttp.ClientError, asyncio.TimeoutError))
     async def get_user_info(self) -> dict:
         """
         根据token获取用户信息
@@ -112,6 +152,7 @@ class HaierClient:
                 'username': content['username']
             }
 
+    @retry_on_exception(exceptions=(aiohttp.ClientError, asyncio.TimeoutError))
     async def get_devices(self) -> List[HaierDevice]:
         """
         获取设备列表
@@ -130,6 +171,7 @@ class HaierClient:
 
             return devices
 
+    @retry_on_exception(exceptions=(aiohttp.ClientError, asyncio.TimeoutError))
     async def get_digital_model(self, deviceId: str) -> list:
         """
         获取设备attributes
@@ -194,6 +236,7 @@ class HaierClient:
 
         return attributes
 
+    @retry_on_exception(exceptions=(aiohttp.ClientError, asyncio.TimeoutError))
     async def get_device_snapshot_data(self, deviceId: str) -> dict:
         """
         获取指定设备最新的属性数据
