@@ -37,7 +37,8 @@ class HaierConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         'token': token_info.token,
                         'refresh_token': token_info.refresh_token,
                         'expires_at': int(time.time()) + token_info.expires_in,
-                        'default_load_all_entity': user_input['default_load_all_entity']
+                        'default_load_all_entity': user_input['default_load_all_entity'],
+                        'ignore_device_offline': user_input['ignore_device_offline']
                     }
                 })
             except HaierClientException as e:
@@ -51,6 +52,7 @@ class HaierConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CLIENT_ID): str,
                     vol.Required(REFRESH_TOKEN): str,
                     vol.Required('default_load_all_entity', default=True): bool,
+                    vol.Required('ignore_device_offline', default=False): bool,
                 }
             ),
             errors=errors
@@ -101,6 +103,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 cfg.refresh_token = token_info.refresh_token
                 cfg.expires_at = int(time.time()) + token_info.expires_in
                 cfg.default_load_all_entity = user_input['default_load_all_entity']
+                cfg.ignore_device_offline = user_input['ignore_device_offline']
                 cfg.save(user_info['mobile'])
 
                 await self.hass.config_entries.async_reload(self.config_entry.entry_id)
@@ -117,6 +120,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Required(CLIENT_ID, default=cfg.client_id): str,
                     vol.Required(REFRESH_TOKEN, default=cfg.refresh_token): str,
                     vol.Required('default_load_all_entity', default=cfg.default_load_all_entity): bool,
+                    vol.Required('ignore_device_offline', default=cfg.ignore_device_offline): bool,
                 }
             ),
             errors=errors

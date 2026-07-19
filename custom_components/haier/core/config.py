@@ -22,6 +22,9 @@ class AccountConfig:
 
     default_load_all_entity: bool = None
 
+    # 是否忽略设备离线状态。为True时设备离线不会将实体标记为不可用，而是保留最后一次的状态
+    ignore_device_offline: bool = None
+
     def __init__(self, hass: HomeAssistant, config: ConfigEntry):
         self._hass = hass
         self._config = config
@@ -32,6 +35,7 @@ class AccountConfig:
         self.refresh_token = cfg.get('refresh_token', '')
         self.expires_at = cfg.get('expires_at', 0)
         self.default_load_all_entity = cfg.get('default_load_all_entity', True)
+        self.ignore_device_offline = cfg.get('ignore_device_offline', False)
 
     def save(self, mobile: str = None):
         self._hass.config_entries.async_update_entry(
@@ -44,7 +48,8 @@ class AccountConfig:
                     'token': self.token,
                     'refresh_token': self.refresh_token,
                     'expires_at': self.expires_at,
-                    'default_load_all_entity': self.default_load_all_entity
+                    'default_load_all_entity': self.default_load_all_entity,
+                    'ignore_device_offline': self.ignore_device_offline
                 }
             }
         )

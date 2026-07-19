@@ -8,7 +8,8 @@
                 "data": {
                     "client_id": "Client Id",
                     "refresh_token": "Refresh Token",
-                    "default_load_all_entity": "Default load all entity"
+                    "default_load_all_entity": "Default load all entity",
+                    "ignore_device_offline": "Ignore device offline status (keep last state when offline)"
                 },
                 "description": "Enter your Haier Token.",
                 "title": "Configure account information"
@@ -32,7 +33,8 @@
                 "data": {
                     "client_id": "Client Id",
                     "refresh_token": "Refresh Token",
-                    "default_load_all_entity": "Default load all entity"
+                    "default_load_all_entity": "Default load all entity",
+                    "ignore_device_offline": "Ignore device offline status (keep last state when offline)"
                 }
             },
             "device": {

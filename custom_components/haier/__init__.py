@@ -27,6 +27,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     account_cfg = AccountConfig(hass, entry)
     client = HaierClient(hass, account_cfg.client_id, account_cfg.token)
 
+    # 是否忽略设备离线状态，供实体在收到离线事件时判断是否保留最后状态
+    hass.data[DOMAIN]['ignore_device_offline'] = account_cfg.ignore_device_offline
+
     devices = await client.get_devices()
     _LOGGER.info('共获取到{}个设备'.format(len(devices)))
     hass.data[DOMAIN]['devices'] = devices

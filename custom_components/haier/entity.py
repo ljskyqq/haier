@@ -81,6 +81,11 @@ class HaierAbstractEntity(Entity, ABC):
             if event.data['deviceId'] != self._device.id:
                 return
 
+            # 配置为忽略设备在线/离线状态时，可用性完全由数据和网关连接驱动，
+            # 不再随设备上线/离线变化，从而在设备离线时保留最后一次的状态
+            if self.hass.data[DOMAIN]['ignore_device_offline']:
+                return
+
             self._attr_available = event.data['online']
             self.schedule_update_ha_state()
 
